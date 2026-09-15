@@ -1,9 +1,7 @@
 package com.sivalabs.jcart;
 
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Base class for jcart-core integration tests.
@@ -15,10 +13,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * after the Java/Spring Boot upgrade only this class needs to change
  * (e.g. @SpringBootTest + JUnit 5, spring.sql.init.mode=always).
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = JCartCoreApplication.class)
+@SpringBootTest(classes = JCartCoreApplication.class)
 @TestPropertySource(properties = {
-		"spring.datasource.initialize=true",
+		"spring.sql.init.mode=always",
+		"spring.jpa.defer-datasource-initialization=true",
 		"spring.mail.host=localhost",
 		"spring.mail.port=2525",
 		"spring.mail.properties.mail.smtps.connectiontimeout=500",

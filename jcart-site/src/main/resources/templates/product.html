@@ -41,7 +41,7 @@
                                     
                                     <div>
                                         <button class="add_to_cart_button" type="submit" 
-                                        		th:onclick="'javascript:addItemToCart(\'' + ${product.sku} + '\');'">Add to cart</button>
+                                        		th:data-sku="${product.sku}" onclick="addItemToCart(this.getAttribute('data-sku'));">Add to cart</button>
                                     </div>   
                                     
                                     <div class="product-inner-category">

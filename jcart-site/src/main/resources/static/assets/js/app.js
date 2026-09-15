@@ -29,7 +29,7 @@ jQuery(document).ready(function($){
 	        type: "POST", 
 	        dataType: "json",
 	        contentType: "application/json",
-	        data : '{"sku":"'+ sku +'"}"',
+	        data : JSON.stringify({ sku: sku }),
 	        complete: function(responseData, status, xhttp){
 	        	updateCartItemCount();
 	        	/*
@@ -53,7 +53,7 @@ jQuery(document).ready(function($){
 	        type: "PUT", 
 	        dataType: "json",
 	        contentType: "application/json",
-	        data : '{ "product" :{ "sku":"'+ sku +'"},"quantity":"'+quantity+'"}',
+	        data : JSON.stringify({ product: { sku: sku }, quantity: quantity }),
 	        complete: function(responseData, status, xhttp){ 
 	        	updateCartItemCount();        	
 	        	location.href = '/cart' 

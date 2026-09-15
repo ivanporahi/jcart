@@ -176,6 +176,7 @@ Resultado: `mvn compile` **BUILD SUCCESS** en JDK 21.
 | 4 | admin | `AdminFunctionalTest.unknownOrder...` esperaba `NestedServletException`. | Clase eliminada en Spring 6; MockMvc propaga `jakarta.servlet.ServletException`. | Se desenvuelve la causa y se sigue exigiendo `TemplateProcessingException` (el defecto preexistente “orden desconocida → 500” queda caracterizado igual). | No. |
 | 5 | site | 8 errores `TemplateProcessingException: Only variable expressions returning numbers or booleans are allowed in this context` en `home/products/category/product.html` (y `cart.html`, no cubierto por tests). | Thymeleaf 3.1 **prohíbe** concatenar Strings dentro de `th:onclick`/`th:onchange` (mitigación XSS). El código 1.x era `th:onclick="'javascript:addItemToCart(\'' + ${product.sku} + '\');'"`. | Patrón recomendado por Thymeleaf: `th:data-sku="${product.sku}" onclick="addItemToCart(this.getAttribute('data-sku'));"` (ídem `removeItemFromCart`, `updateCartItemQuantity(sku, this.value)`). Las funciones JS no cambian. | No funcional; el HTML generado cambia de `onclick="javascript:addItemToCart('P1001')"` a `data-sku="P1001" onclick="addItemToCart(this.getAttribute('data-sku'))"`. Verificado en arranque real (`POST /cart/items` → `{"count":1}`). |
 | 6 | admin/site | En logs de test: `MailConnectException: Couldn't connect to host, port: localhost, 2525`. | No es un fallo de test: el registro de cliente / forgot-password intenta enviar correo real a `localhost:2525` (igual que en el baseline JDK 8, donde salía `javax.mail.MessagingException`). `EmailService` captura y loguea. | Sin cambio; comportamiento idéntico al "antes". | No. |
+| 7 | site (UI, hallado en la demo en navegador sobre JDK 21) | Botón "Add to cart" no sumaba al carrito; log: `HttpMessageNotReadableException: Trailing token (VALUE_STRING) found after value … FAIL_ON_TRAILING_TOKENS`. | `static/assets/js/app.js` enviaba JSON malformado desde 2015: `'{"sku":"'+sku+'"}"'` (comilla sobrante). Jackson 2.6 lo toleraba; **Jackson 3 activa `FAIL_ON_TRAILING_TOKENS` por defecto** y responde 400. Los tests MockMvc no lo detectaban porque envían JSON bien formado. | `data: JSON.stringify({sku: sku})` y `JSON.stringify({product:{sku}, quantity})`. Nuevo test `SiteFunctionalTest.cartRestAcceptsBrowserPayloads` que envía exactamente los payloads del navegador (quantity como string) y exige 400 para el JSON malformado. | Sí, para bien: se corrige un bug latente del JS que el runtime nuevo dejó de tolerar. Funcionalidad final igual al "antes". |
 
 ### Resultado de la suite en JDK 21 (`mvn clean install`)
 
@@ -183,8 +184,8 @@ Resultado: `mvn compile` **BUILD SUCCESS** en JDK 21.
 $ java -version  → openjdk version "21.0.12.1" 2026-08-18 LTS
 jcart-core : Tests run: 42, Failures: 0, Errors: 0, Skipped: 1   (mismo @Disabled preexistente)
 jcart-admin: Tests run: 31, Failures: 0, Errors: 0, Skipped: 0
-jcart-site : Tests run: 34, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS   (107 tests, 0 fallos)
+jcart-site : Tests run: 35, Failures: 0, Errors: 0, Skipped: 0   (+1 test nuevo: payloads del navegador)
+BUILD SUCCESS   (108 tests, 0 fallos)
 ```
 
 Avisos no bloqueantes que quedan (documentados, no corregidos para no ampliar el alcance):
@@ -252,7 +253,7 @@ Lectura: todo sigue muy por debajo de los umbrales de la suite. Las operaciones 
 | Jackson | 2.6.3 (`com.fasterxml`) | 3.1.5 (`tools.jackson`) |
 | JUnit / Mockito | 4.12 / 1.10.19 | Jupiter 6.0.3 / 5.23.0 |
 | Plugins Maven | compiler 3.x (source/target 1.8), surefire 2.x, boot-plugin sin versión en site | compiler 3.15.0 (`release 21`), surefire 3.5.6, jar 3.5.1, resources 3.5.0, boot-plugin 4.1.1 con `repackage` en admin y site |
-| Tests | 107 verdes (JDK 8) | 107 verdes (JDK 21), sin eliminar ni relajar ninguno |
+| Tests | 107 verdes (JDK 8) | 108 verdes (JDK 21): los 107 originales sin eliminar ni relajar + 1 nuevo (`cartRestAcceptsBrowserPayloads`) |
 
 Lista completa de dependencias: `docs/upgrade-dependencias-antes.txt` (78) y `docs/upgrade-dependencias-despues.txt` (140, incluye test scope).
 

@@ -99,6 +99,28 @@ public class SiteFunctionalTest extends AbstractSiteWebTest
 
 	// ------------------------------------------------------------------- cart
 
+	/** Same payloads assets/js/app.js builds in the browser (quantity arrives as an input string). */
+	@Test
+	public void cartRestAcceptsBrowserPayloads() throws Exception
+	{
+		MockHttpSession session = new MockHttpSession();
+		String addPayload = "{\"sku\":\"P1001\"}";
+		String updatePayload = "{\"product\":{\"sku\":\"P1001\"},\"quantity\":\"3\"}";
+
+		mockMvc.perform(post("/cart/items").session(session).contentType(MediaType.APPLICATION_JSON).content(addPayload))
+				.andExpect(status().isOk());
+		mockMvc.perform(get("/cart/items/count").session(session)).andExpect(content().string("{\"count\":1}"));
+
+		mockMvc.perform(put("/cart/items").session(session).contentType(MediaType.APPLICATION_JSON).content(updatePayload))
+				.andExpect(status().isOk());
+		mockMvc.perform(get("/cart/items/count").session(session)).andExpect(content().string("{\"count\":3}"));
+
+		// malformed JSON (trailing token) must be rejected, not silently accepted
+		mockMvc.perform(post("/cart/items").session(session).contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"P1001\"}\""))
+				.andExpect(status().isBadRequest());
+		mockMvc.perform(get("/cart/items/count").session(session)).andExpect(content().string("{\"count\":3}"));
+	}
+
 	@Test
 	public void cartRestLifecycle() throws Exception
 	{

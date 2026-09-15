@@ -38,7 +38,7 @@ public class CatalogService {
 	}
 	
 	public Category getCategoryById(Integer id) {
-		return categoryRepository.findOne(id);
+		return categoryRepository.findById(id).orElse(null);
 	}
 
 	public Category createCategory(Category category) {
@@ -61,7 +61,7 @@ public class CatalogService {
 	}
 
 	public Product getProductById(Integer id) {
-		return productRepository.findOne(id);
+		return productRepository.findById(id).orElse(null);
 	}
 	
 	public Product getProductBySku(String sku) {

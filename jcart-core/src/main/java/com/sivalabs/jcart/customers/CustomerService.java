@@ -34,7 +34,7 @@ public class CustomerService {
 	}
 
 	public Customer getCustomerById(Integer id) {
-		return customerRepository.findOne(id);
+		return customerRepository.findById(id).orElse(null);
 	}
 
 	public List<Order> getCustomerOrders(String email) {

@@ -98,7 +98,7 @@ public class SecurityService
 			for (Permission permission : permissions) {
 				if(permission.getId() != null)
 				{
-					persistedPermissions.add(permissionRepository.findOne(permission.getId()));
+					persistedPermissions.add(permissionRepository.findById(permission.getId()).orElse(null));
 				}
 			}
 		}
@@ -120,7 +120,7 @@ public class SecurityService
 			for (Permission permission : permissions) {
 				if(permission.getId() != null)
 				{
-					updatedPermissions.add(permissionRepository.findOne(permission.getId()));
+					updatedPermissions.add(permissionRepository.findById(permission.getId()).orElse(null));
 				}
 			}
 		}
@@ -129,12 +129,12 @@ public class SecurityService
 	}
 	
 	public Role getRoleById(Integer id) {
-		return roleRepository.findOne(id);
+		return roleRepository.findById(id).orElse(null);
 	}
 	
 	public User getUserById(Integer id)
 	{
-		return userRepository.findOne(id);
+		return userRepository.findById(id).orElse(null);
 	}
 	
 	public List<User> getAllUsers() {
@@ -153,7 +153,7 @@ public class SecurityService
 			for (Role role : roles) {
 				if(role.getId() != null)
 				{
-					persistedRoles.add(roleRepository.findOne(role.getId()));
+					persistedRoles.add(roleRepository.findById(role.getId()).orElse(null));
 				}
 			}
 		}
@@ -175,7 +175,7 @@ public class SecurityService
 			for (Role role : roles) {
 				if(role.getId() != null)
 				{
-					updatedRoles.add(roleRepository.findOne(role.getId()));
+					updatedRoles.add(roleRepository.findById(role.getId()).orElse(null));
 				}
 			}
 		}

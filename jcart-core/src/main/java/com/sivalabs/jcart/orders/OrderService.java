@@ -44,7 +44,7 @@ public class OrderService
 
 	public List<Order> getAllOrders()
 	{
-		Sort sort = new Sort(Direction.DESC, "createdOn");
+		Sort sort = Sort.by(Direction.DESC, "createdOn");
 		return orderRepository.findAll(sort);
 	}
 

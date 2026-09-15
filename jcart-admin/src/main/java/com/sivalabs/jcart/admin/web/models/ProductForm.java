@@ -5,10 +5,10 @@ package com.sivalabs.jcart.admin.web.models;
 
 import java.math.BigDecimal;
 
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sivalabs.jcart.entities.Category;

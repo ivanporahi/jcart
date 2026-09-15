@@ -9,17 +9,16 @@ import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.servlet.ServletWebServerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 /**
@@ -27,7 +26,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
  *
  */
 @Configuration
-public class WebConfig extends WebMvcConfigurerAdapter
+public class WebConfig implements WebMvcConfigurer
 {
 	@Value("${server.port:8443}")
 	private int serverPort;
@@ -46,17 +45,9 @@ public class WebConfig extends WebMvcConfigurerAdapter
 	@Override
 	public void addViewControllers(ViewControllerRegistry registry)
 	{
-		super.addViewControllers(registry);
 		registry.addViewController("/login").setViewName("login");
 		registry.addViewController("/register").setViewName("register");
 		registry.addRedirectViewController("/", "/home");
-
-	}
-
-	@Override
-	public void addInterceptors(InterceptorRegistry registry)
-	{
-		super.addInterceptors(registry);
 	}
 
 	@Bean
@@ -65,23 +56,17 @@ public class WebConfig extends WebMvcConfigurerAdapter
 		ClassLoaderTemplateResolver emailTemplateResolver = new ClassLoaderTemplateResolver();
 		emailTemplateResolver.setPrefix("email-templates/");
 		emailTemplateResolver.setSuffix(".html");
-		emailTemplateResolver.setTemplateMode("HTML5");
+		emailTemplateResolver.setTemplateMode(TemplateMode.HTML);
 		emailTemplateResolver.setCharacterEncoding("UTF-8");
 		emailTemplateResolver.setOrder(2);
-
+		emailTemplateResolver.setCheckExistence(true);
 		return emailTemplateResolver;
 	}
 
 	@Bean
-	public SpringSecurityDialect securityDialect()
+	public ServletWebServerFactory servletContainer()
 	{
-		return new SpringSecurityDialect();
-	}
-
-	@Bean
-	public EmbeddedServletContainerFactory servletContainer()
-	{
-		TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory()
+		TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory()
 		{
 			@Override
 			protected void postProcessContext(Context context)
@@ -94,8 +79,7 @@ public class WebConfig extends WebMvcConfigurerAdapter
 				context.addConstraint(securityConstraint);
 			}
 		};
-
-		tomcat.addAdditionalTomcatConnectors(initiateHttpConnector());
+		tomcat.addAdditionalConnectors(initiateHttpConnector());
 		return tomcat;
 	}
 
@@ -106,8 +90,6 @@ public class WebConfig extends WebMvcConfigurerAdapter
 		connector.setPort(8080);
 		connector.setSecure(false);
 		connector.setRedirectPort(serverPort);
-
 		return connector;
 	}
-
 }

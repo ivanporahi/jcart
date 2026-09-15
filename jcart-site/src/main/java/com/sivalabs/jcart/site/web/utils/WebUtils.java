@@ -3,7 +3,7 @@
  */
 package com.sivalabs.jcart.site.web.utils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Siva

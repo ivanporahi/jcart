@@ -1,16 +1,16 @@
 package com.sivalabs.jcart.site;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
@@ -38,11 +38,11 @@ public class SiteSecurityTest extends AbstractSiteWebTest
 		{
 			mockMvc.perform(get(url))
 					.andExpect(status().isFound())
-					.andExpect(redirectedUrlPattern("**/login"));
+					.andExpect(header().string("Location", Matchers.endsWith("/login")));
 		}
 		mockMvc.perform(post("/orders"))
 				.andExpect(status().isFound())
-				.andExpect(redirectedUrlPattern("**/login"));
+				.andExpect(header().string("Location", Matchers.endsWith("/login")));
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class SiteSecurityTest extends AbstractSiteWebTest
 				.andExpect(redirectedUrl("/login?logout"));
 		mockMvc.perform(get("/myAccount").session(session))
 				.andExpect(status().isFound())
-				.andExpect(redirectedUrlPattern("**/login"));
+				.andExpect(header().string("Location", Matchers.endsWith("/login")));
 	}
 
 	@Test

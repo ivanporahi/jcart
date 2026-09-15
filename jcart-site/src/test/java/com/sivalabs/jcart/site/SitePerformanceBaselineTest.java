@@ -1,11 +1,11 @@
 package com.sivalabs.jcart.site;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
@@ -36,7 +36,7 @@ public class SitePerformanceBaselineTest extends AbstractSiteWebTest
 		for (int i = 0; i < ITERATIONS; i++) r.perform();
 		double avgMs = (System.nanoTime() - start) / 1_000_000.0 / ITERATIONS;
 		System.out.println(String.format("PERF %s avg_ms=%.3f iterations=%d", name, avgMs, ITERATIONS));
-		assertTrue(name + " avg " + avgMs + "ms exceeds " + MAX_AVG_MS + "ms", avgMs < MAX_AVG_MS);
+		assertTrue(avgMs < MAX_AVG_MS, name + " avg " + avgMs + "ms exceeds " + MAX_AVG_MS + "ms");
 	}
 
 	@Test

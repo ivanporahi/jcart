@@ -1,10 +1,11 @@
 package com.sivalabs.jcart.admin;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -15,8 +16,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,7 +56,7 @@ public class AdminFunctionalTest extends AbstractAdminWebTest
 		return new TransactionTemplate(txManager).execute(callback);
 	}
 
-	@Before
+	@BeforeEach
 	public void loginAsSuperAdmin() throws Exception
 	{
 		session = login(SUPER_ADMIN, SUPER_ADMIN_PWD);
@@ -239,15 +240,11 @@ public class AdminFunctionalTest extends AbstractAdminWebTest
 	{
 		// Characterization: no 404 handling; the controller puts null into the model
 		// and Thymeleaf fails evaluating "order.orderNumber" (surfaces as a 500 in prod).
-		try
-		{
-			mockMvc.perform(get("/orders/does-not-exist").session(session));
-			org.junit.Assert.fail("expected NestedServletException");
-		}
-		catch (org.springframework.web.util.NestedServletException e)
-		{
-			assertTrue(e.getCause() instanceof org.thymeleaf.exceptions.TemplateProcessingException);
-		}
+		Exception e = assertThrows(Exception.class,
+				() -> mockMvc.perform(get("/orders/does-not-exist").session(session)));
+		Throwable root = e instanceof jakarta.servlet.ServletException ? e.getCause() : e;
+		assertTrue(root instanceof org.thymeleaf.exceptions.TemplateProcessingException,
+				"expected TemplateProcessingException but was " + root);
 	}
 
 	// ---------- customers ----------

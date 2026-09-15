@@ -7,60 +7,54 @@ package com.sivalabs.jcart.admin.security;
  * @author Siva
  *
  */
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, proxyTargetClass = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-	
-	@Autowired
-	private UserDetailsService customUserDetailsService;
-	
+@EnableMethodSecurity(securedEnabled = true, proxyTargetClass = true)
+public class WebSecurityConfig {
+
 	@Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-	
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+
+	@Bean
+	public AuthenticationManager authenticationManager(UserDetailsService customUserDetailsService,
+			PasswordEncoder passwordEncoder) {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
+		provider.setPasswordEncoder(passwordEncoder);
+		return new ProviderManager(provider);
+	}
+
+	@Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-        	.csrf().disable()
-            .authorizeRequests()
-            	.antMatchers("/resources/**", "/webjars/**","/assets/**").permitAll()
-                .antMatchers("/", "/forgotPwd","/resetPwd").permitAll()
-                //.antMatchers(HttpMethod.POST,"/api","/api/**").hasRole("ROLE_ADMIN")
-                .anyRequest().authenticated()
-                .and()
-            .formLogin()
+        	.csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(authorize -> authorize
+            	.requestMatchers("/resources/**", "/webjars/**","/assets/**").permitAll()
+                .requestMatchers("/", "/forgotPwd","/resetPwd").permitAll()
+                .anyRequest().authenticated())
+            .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/home")
                 .failureUrl("/login?error")
-                .permitAll()
-                .and()
-            .logout()
-            	.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-            	//.logoutUrl("/logout")
-                .permitAll()
-                .and()
-            .exceptionHandling().accessDeniedPage("/403");
-    }
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-        	.userDetailsService(customUserDetailsService)
-        	.passwordEncoder(passwordEncoder());
+                .permitAll())
+            .logout(logout -> logout
+            	.logoutUrl("/logout")
+                .permitAll())
+            .exceptionHandling(handling -> handling.accessDeniedPage("/403"));
+        return http.build();
     }
 }

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
 	  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
-      layout:decorator="layout/mainLayout">
+      layout:decorate="~{layout/mainLayout}">
       
       <head>
         <title>Cart</title>
@@ -35,7 +35,7 @@
 		                                        <tr class="cart_item" th:each="item : ${cart.items}">
 		                                            <td class="product-remove">
 		                                                <a title="Remove this item" class="remove" href="#" 
-		                                                	th:onclick="'javascript:removeItemFromCart( \''+${item.product.sku}+'\');'">×</a> 
+		                                                	th:data-sku="${item.product.sku}" onclick="removeItemFromCart(this.getAttribute('data-sku'));">×</a> 
 		                                            </td>
 		
 		                                            <td class="product-thumbnail">
@@ -58,7 +58,7 @@
 		                                            <td class="product-quantity">
 		                                                <div class="quantity buttons_added">
 		                                                	<input type="text" size="5" value="1" th:value="${item.quantity}" 
-		                                                			th:onchange="'javascript:updateCartItemQuantity( \''+${item.product.sku}+'\' , '+this.value+');'"/>
+		                                                			th:data-sku="${item.product.sku}" onchange="updateCartItemQuantity(this.getAttribute('data-sku'), this.value);"/>
 		                                                </div>
 		                                            </td>
 		

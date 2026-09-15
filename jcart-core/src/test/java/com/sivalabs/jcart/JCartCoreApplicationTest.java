@@ -3,26 +3,23 @@
  */
 package com.sivalabs.jcart;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import com.sivalabs.jcart.common.services.EmailService;
 /**
  * @author Siva
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = JCartCoreApplication.class)
+@SpringBootTest(classes = JCartCoreApplication.class)
 public class JCartCoreApplicationTest
 {
 	@Autowired DataSource dataSource;
@@ -36,7 +33,7 @@ public class JCartCoreApplicationTest
 	}
 	
 	@Test
-	@Ignore
+	@Disabled
 	public void testSendEmail()
 	{
 		emailService.sendEmail("admin@gmail.com", "JCart - Test Mail", "This is a test email from JCart");

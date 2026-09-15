@@ -5,7 +5,7 @@ package com.sivalabs.jcart.admin.web.controllers;
 
 import static com.sivalabs.jcart.admin.web.utils.MessageCodes.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;

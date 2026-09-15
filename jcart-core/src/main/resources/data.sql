@@ -106,3 +106,15 @@ insert into orders (id, order_number, cust_id, billing_addr_id, delivery_addr_id
 
 insert into order_items (id, order_id, price, product_id, quantity) values 
 (1,1, 430.00, 1, 1);
+-- H2 2.x no avanza las columnas IDENTITY cuando se insertan ids explicitos;
+-- realinear las secuencias para que los nuevos registros no colisionen con los seeds.
+ALTER TABLE categories ALTER COLUMN id RESTART WITH 4;
+ALTER TABLE products ALTER COLUMN id RESTART WITH 26;
+ALTER TABLE roles ALTER COLUMN id RESTART WITH 5;
+ALTER TABLE users ALTER COLUMN id RESTART WITH 6;
+ALTER TABLE permissions ALTER COLUMN id RESTART WITH 10;
+ALTER TABLE customers ALTER COLUMN id RESTART WITH 3;
+ALTER TABLE addresses ALTER COLUMN id RESTART WITH 2;
+ALTER TABLE payments ALTER COLUMN id RESTART WITH 2;
+ALTER TABLE orders ALTER COLUMN id RESTART WITH 2;
+ALTER TABLE order_items ALTER COLUMN id RESTART WITH 2;

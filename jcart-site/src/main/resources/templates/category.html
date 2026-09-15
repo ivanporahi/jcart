@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
 	  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
-      layout:decorator="layout/mainLayout">
+      layout:decorate="~{layout/mainLayout}">
       
       <head>
         <title>Category</title>
@@ -33,7 +33,7 @@
 		                        <div class="product-option-shop">
 		                            <a class="add_to_cart_button" data-quantity="1" data-product_sku="" 
 		                            	data-product_id="70" rel="nofollow" href="#"
-		                            	th:onclick="'javascript:addItemToCart(\'' + ${product.sku} + '\');'">Add to cart</a>
+		                            	th:data-sku="${product.sku}" onclick="addItemToCart(this.getAttribute('data-sku'));">Add to cart</a>
 		                        </div>                       
 		                    </div>
 		                </div>

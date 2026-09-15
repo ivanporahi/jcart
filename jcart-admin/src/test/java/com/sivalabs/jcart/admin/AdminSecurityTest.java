@@ -1,18 +1,18 @@
 package com.sivalabs.jcart.admin;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,7 +54,7 @@ public class AdminSecurityTest extends AbstractAdminWebTest
 		{
 			mockMvc.perform(get(url))
 					.andExpect(status().isFound())
-					.andExpect(redirectedUrlPattern("**/login"));
+					.andExpect(header().string("Location", Matchers.endsWith("/login")));
 		}
 	}
 
@@ -100,7 +100,7 @@ public class AdminSecurityTest extends AbstractAdminWebTest
 				.andExpect(redirectedUrl("/login?logout"));
 		mockMvc.perform(get("/home").session(session2))
 				.andExpect(status().isFound())
-				.andExpect(redirectedUrlPattern("**/login"));
+				.andExpect(header().string("Location", Matchers.endsWith("/login")));
 	}
 
 	@Test

@@ -4,16 +4,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import javax.servlet.Filter;
+import jakarta.servlet.Filter;
 
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -23,11 +20,10 @@ import org.springframework.web.context.WebApplicationContext;
  * Base for JCart Site web/security baseline tests (MockMvc + real security
  * filter chain + real form login against seed customers).
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = JCartSiteApplication.class)
-@WebAppConfiguration
+@SpringBootTest(classes = JCartSiteApplication.class)
 @TestPropertySource(properties = {
-		"spring.datasource.initialize=true",
+		"spring.sql.init.mode=always",
+		"spring.jpa.defer-datasource-initialization=true",
 		"spring.mail.host=localhost",
 		"spring.mail.port=2525",
 		"spring.mail.properties.mail.smtp.connectiontimeout=500",
@@ -46,7 +42,7 @@ public abstract class AbstractSiteWebTest
 
 	protected MockMvc mockMvc;
 
-	@Before
+	@BeforeEach
 	public void setUpMockMvc()
 	{
 		mockMvc = MockMvcBuilders.webAppContextSetup(wac).addFilters(springSecurityFilterChain).build();

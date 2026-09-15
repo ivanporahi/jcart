@@ -220,24 +220,46 @@ Verificación con `curl` (0 ERROR/Exception en logs):
 
 Ahora `cd jcart-site && mvn spring-boot:run` también funciona (antes requería invocar el plugin con versión explícita).
 
-### Performance: antes (JDK 8) vs después (JDK 21) — misma máquina, una corrida cada una
+### Performance: antes (JDK 8) vs después (JDK 21) — misma máquina, una corrida cada una (corrida final sobre `eef1866`)
 
-| Métrica | JDK 8 / Boot 1.3 | JDK 21 / Boot 4.1 |
-|---|---|---|
-| core.findUserByEmail | 0.158 ms | 0.418 ms |
-| core.getAllCategories | 0.486 ms | 1.294 ms |
-| core.getAllProducts | 0.824 ms | 1.764 ms |
-| core.getOrder | 0.230 ms | 0.889 ms |
-| core.getProductBySku | 0.724 ms | 1.543 ms |
-| core.searchProducts | 0.754 ms | 1.259 ms |
-| site GET /home | 5.947 ms | 6.831 ms |
-| site GET /myAccount (auth) | 5.029 ms | 7.843 ms |
-| site GET /products | 3.501 ms | 5.560 ms |
-| site GET /products/{sku} | 5.911 ms | 9.292 ms |
-| site POST /cart/items + count | 2.067 ms | 2.574 ms |
-| site POST /login (BCrypt) | 62.020 ms | 61.215 ms |
+| Métrica | JDK 8 / Boot 1.3 | JDK 21 / Boot 4.1 | Δ |
+|---|---|---|---|
+| core.findUserByEmail | 0.158 ms | 0.413 ms | 2.6× |
+| core.getAllCategories | 0.486 ms | 1.167 ms | 2.4× |
+| core.getAllProducts | 0.824 ms | 2.014 ms | 2.4× |
+| core.getOrder | 0.230 ms | 0.667 ms | 2.9× |
+| core.getProductBySku | 0.724 ms | 1.469 ms | 2.0× |
+| core.searchProducts | 0.754 ms | 1.515 ms | 2.0× |
+| site GET /home | 5.947 ms | 6.896 ms | 1.2× |
+| site GET /myAccount (auth) | 5.029 ms | 8.345 ms | 1.7× |
+| site GET /products | 3.501 ms | 5.613 ms | 1.6× |
+| site GET /products/{sku} | 5.911 ms | 10.639 ms | 1.8× |
+| site POST /cart/items + count | 2.067 ms | 2.439 ms | 1.2× |
+| site POST /login (BCrypt) | 62.020 ms | 61.379 ms | 1.0× |
 
-Lectura: todo sigue muy por debajo de los umbrales de la suite. Las operaciones JPA de sub-milisegundo aparecen ~2× más lentas en valor absoluto (0.2–1.8 ms); es el coste esperado de Hibernate 7 + Spring Data 4 (más capas, `show-sql` activo, JIT frío en 200 iteraciones) y no una regresión funcional. BCrypt es idéntico (dominado por el hash). Si se quisiera afinar, los candidatos son `spring.jpa.show-sql=false` y `spring.jpa.open-in-view=false`, fuera del alcance de este upgrade.
+Lectura: todo sigue muy por debajo de los umbrales de la suite. Las operaciones JPA de sub-milisegundo aparecen ~2–3× más lentas en valor absoluto (0.2–2 ms); es el coste esperado de Hibernate 7 + Spring Data 4 (más capas, `show-sql` activo, JIT frío en 200 iteraciones) y no una regresión funcional. BCrypt es idéntico (dominado por el hash). Si se quisiera afinar, los candidatos son `spring.jpa.show-sql=false` y `spring.jpa.open-in-view=false`, fuera del alcance de este upgrade.
+
+### Demo manual en navegador (JDK 21) vs baseline (JDK 8)
+
+Se repitieron los 13 escenarios grabados en el PR #1 sobre los jars empaquetados corriendo en Temurin 21.0.12.1 / Boot 4.1.1 (grabación y capturas en el comentario del PR #2).
+
+| # | Escenario | Java 8 | Java 21 |
+|---|---|---|---|
+| 1 | Admin HTTP 9090 → HTTPS 9443 | ok | igual |
+| 2 | Admin rutas privadas anónimas → /login | ok | igual |
+| 3 | Login superadmin → /home | ok | igual |
+| 4 | Listados admin (3 cat, 25 prod, 5 users, 4 roles, 9 perms, 2 clientes, 1 orden) | ok | igual |
+| 5 | Crear categoría y verla listada | ok | igual |
+| 6 | Editar producto **no persiste y no muestra error** (defecto) | defecto | igual (defecto conservado) |
+| 7 | Logout → /login | ok | igual |
+| 8 | Site home/categoría/catálogo/detalle; imágenes ausentes | ok (sin imágenes) | igual |
+| 9 | Add to cart desde detalle y listado (badge 0→1→2→3) | ok | **falló en el primer intento** (bug `app.js`/Jackson 3, fila 7 de la tabla de fallos); igual tras el fix |
+| 10 | Carrito: cantidad y quitar (1350 → 1780 → 1290) | ok | igual |
+| 11 | Checkout anónimo → login → orden confirmada, carrito a 0 | ok, vuelve a `/checkout` | igual; la URL tras login es `/checkout?continue` (Security 7, cosmético) |
+| 12 | My Account lista la orden | ok | igual |
+| 13 | `/orders/{n}` anónimo expone la orden (defecto) | defecto | igual (defecto conservado) |
+| + | Registro de cliente nuevo y login | ok | igual |
+| + | Admin `/orders/does-not-exist` → 500 (defecto) | defecto | igual |
 
 ### Resumen antes vs después
 

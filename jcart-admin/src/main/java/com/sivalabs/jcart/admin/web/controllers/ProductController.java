@@ -119,6 +119,11 @@ public class ProductController extends JCartAdminBaseController
 			return viewPrefix+"edit_product";
 		}
 		Product product = productForm.toProduct();
+		Product existingProduct = catalogService.getProductById(productForm.getId());
+		if(existingProduct != null){
+			// The edit form has no 'disabled' field; keep the persisted state.
+			product.setDisabled(existingProduct.isDisabled());
+		}
 		Product persistedProduct = catalogService.updateProduct(product);
 		this.saveProductImageToDisk(productForm);
 		logger.debug("Updated product with id : {} and name : {}", persistedProduct.getId(), persistedProduct.getName());

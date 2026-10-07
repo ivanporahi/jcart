@@ -52,14 +52,14 @@ public class ProductControllerUpdateTest
 		UserDetails admin = userDetailsService.loadUserByUsername("admin@gmail.com");
 		SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
 				admin, "N/A", AuthorityUtils.createAuthorityList(SecurityUtil.MANAGE_PRODUCTS)));
-		original = jdbcTemplate.queryForMap("select sku, description, price, cat_id from products where id=?", PRODUCT_ID);
+		original = jdbcTemplate.queryForMap("select sku, description, price, cat_id, disabled from products where id=?", PRODUCT_ID);
 	}
 
 	@After
 	public void tearDown()
 	{
-		jdbcTemplate.update("update products set description=?, price=?, cat_id=? where id=?",
-				original.get("description"), original.get("price"), original.get("cat_id"), PRODUCT_ID);
+		jdbcTemplate.update("update products set description=?, price=?, cat_id=?, disabled=? where id=?",
+				original.get("description"), original.get("price"), original.get("cat_id"), original.get("disabled"), PRODUCT_ID);
 		SecurityContextHolder.clearContext();
 	}
 
@@ -83,6 +83,48 @@ public class ProductControllerUpdateTest
 		assertEquals("Edited description", row.get("description"));
 		assertEquals(0, new BigDecimal("999.50").compareTo((BigDecimal) row.get("price")));
 		assertEquals(2, ((Number) row.get("cat_id")).intValue());
+	}
+
+	@Test
+	public void updateOfDisabledProductKeepsItDisabled() throws Exception
+	{
+		jdbcTemplate.update("update products set disabled=true where id=?", PRODUCT_ID);
+
+		mockMvc.perform(post("/products/" + PRODUCT_ID)
+				.param("id", String.valueOf(PRODUCT_ID))
+				.param("sku", (String) original.get("sku"))
+				.param("name", "Quilling Toy 1")
+				.param("price", "999.50")
+				.param("description", "Edited while disabled")
+				.param("categoryId", "2"))
+			.andExpect(model().hasNoErrors())
+			.andExpect(redirectedUrl("/products"));
+
+		Map<String, Object> row = jdbcTemplate.queryForMap(
+				"select description, disabled from products where id=?", PRODUCT_ID);
+		assertEquals("Edited while disabled", row.get("description"));
+		assertEquals(Boolean.TRUE, row.get("disabled"));
+	}
+
+	@Test
+	public void updateOfEnabledProductKeepsItEnabled() throws Exception
+	{
+		jdbcTemplate.update("update products set disabled=false where id=?", PRODUCT_ID);
+
+		mockMvc.perform(post("/products/" + PRODUCT_ID)
+				.param("id", String.valueOf(PRODUCT_ID))
+				.param("sku", (String) original.get("sku"))
+				.param("name", "Quilling Toy 1")
+				.param("price", "999.50")
+				.param("description", "Edited while enabled")
+				.param("categoryId", "2")
+				.param("disabled", "true"))
+			.andExpect(model().hasNoErrors())
+			.andExpect(redirectedUrl("/products"));
+
+		Map<String, Object> row = jdbcTemplate.queryForMap(
+				"select disabled from products where id=?", PRODUCT_ID);
+		assertEquals(Boolean.FALSE, row.get("disabled"));
 	}
 
 	@Test

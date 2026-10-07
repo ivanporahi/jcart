@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.multipart.support.MultipartFilter;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
@@ -56,6 +57,16 @@ public class WebConfig extends WebMvcConfigurerAdapter
 	    FilterRegistrationBean registration = new FilterRegistrationBean(securityFilter);
 	    registration.setOrder(Integer.MAX_VALUE - 1);
 	    registration.setName(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME);
+	    return registration;
+	}
+
+	@Bean
+	public FilterRegistrationBean multipartFilter() {
+	    MultipartFilter filter = new MultipartFilter();
+	    filter.setMultipartResolverBeanName("multipartResolver");
+	    FilterRegistrationBean registration = new FilterRegistrationBean(filter);
+	    registration.setOrder(Integer.MAX_VALUE - 2);
+	    registration.addUrlPatterns("/products", "/products/*");
 	    return registration;
 	}
 

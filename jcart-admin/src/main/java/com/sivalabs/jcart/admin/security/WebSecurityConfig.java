@@ -18,7 +18,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -36,7 +35,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-        	.csrf().disable()
             .authorizeRequests()
             	.antMatchers("/resources/**", "/webjars/**","/assets/**").permitAll()
                 .antMatchers("/", "/forgotPwd","/resetPwd").permitAll()
@@ -50,8 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .and()
             .logout()
-            	.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-            	//.logoutUrl("/logout")
+                .logoutUrl("/logout")
                 .permitAll()
                 .and()
             .exceptionHandling().accessDeniedPage("/403");

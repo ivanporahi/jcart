@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +23,7 @@ public class ProductForm
 {
 	private Integer id;
 	@NotEmpty
+	@Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "SKU may only contain letters, digits, '-' and '_'")
 	private String sku;
 	@NotEmpty
 	private String name;

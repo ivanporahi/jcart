@@ -26,6 +26,7 @@ public class CustomerService {
 	}
 
 	public Customer createCustomer(Customer customer) {
+		customer.setId(null);
 		return customerRepository.save(customer);
 	}
 

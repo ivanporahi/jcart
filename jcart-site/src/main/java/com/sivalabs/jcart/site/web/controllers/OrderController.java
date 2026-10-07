@@ -3,6 +3,7 @@
  */
 package com.sivalabs.jcart.site.web.controllers;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.sivalabs.jcart.JCartException;
+import com.sivalabs.jcart.catalog.CatalogService;
 import com.sivalabs.jcart.common.services.EmailService;
 import com.sivalabs.jcart.customers.CustomerService;
 import com.sivalabs.jcart.site.web.models.Cart;
@@ -44,6 +46,7 @@ public class OrderController extends JCartSiteBaseController
 	@Autowired private CustomerService customerService;
 	@Autowired protected OrderService orderService;
 	@Autowired protected EmailService emailService;
+	@Autowired private CatalogService catalogService;
 	
 	@Override
 	protected String getHeaderTitle()
@@ -56,7 +59,11 @@ public class OrderController extends JCartSiteBaseController
 			BindingResult result, Model model, HttpServletRequest request)
 	{
 		Cart cart = getOrCreateCart(request);
-		if (result.hasErrors()) {
+		List<String> unavailableProducts = removeUnavailableItems(cart);
+		if(!unavailableProducts.isEmpty()){
+			model.addAttribute("unavailableProducts", unavailableProducts);
+		}
+		if (result.hasErrors() || !unavailableProducts.isEmpty()) {
 			model.addAttribute("cart", cart);
 			return "checkout";
         }
@@ -111,6 +118,24 @@ public class OrderController extends JCartSiteBaseController
 		
 		request.getSession().removeAttribute("CART_KEY");
 		return "redirect:orderconfirmation?orderNumber="+savedOrder.getOrderNumber();
+	}
+	
+	/**
+	 * Drops from the cart the items that are no longer sold in the storefront
+	 * (product or its category disabled after being added) and returns their names.
+	 */
+	private List<String> removeUnavailableItems(Cart cart)
+	{
+		List<String> unavailableProducts = new ArrayList<>();
+		for (LineItem lineItem : new ArrayList<>(cart.getItems()))
+		{
+			String sku = lineItem.getProduct().getSku();
+			if(catalogService.getActiveProductBySku(sku) == null){
+				cart.removeItem(sku);
+				unavailableProducts.add(lineItem.getProduct().getName());
+			}
+		}
+		return unavailableProducts;
 	}
 	
 	protected void sendOrderConfirmationEmail(Order order)

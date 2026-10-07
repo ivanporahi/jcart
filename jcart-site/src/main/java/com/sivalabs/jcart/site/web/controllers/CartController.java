@@ -66,7 +66,10 @@ public class CartController extends JCartSiteBaseController
 	public void addToCart(@RequestBody Product product, HttpServletRequest request)
 	{
 		Cart cart = getOrCreateCart(request);
-		Product p = catalogService.getProductBySku(product.getSku());
+		Product p = catalogService.getActiveProductBySku(product.getSku());
+		if(p == null){
+			throw new NotFoundException("Product "+product.getSku()+" not available");
+		}
 		cart.addItem(p);
 	}
 	

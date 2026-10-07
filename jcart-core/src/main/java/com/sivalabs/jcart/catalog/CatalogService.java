@@ -91,4 +91,28 @@ public class CatalogService {
 	public List<Product> searchProducts(String query) {
 		return productRepository.search("%"+query+"%");
 	}
+
+	/*
+	 * Storefront-only queries: they exclude disabled categories, disabled products
+	 * and products whose category is disabled. Admin keeps using the methods above.
+	 */
+	public List<Category> getActiveCategories() {
+		return categoryRepository.findActiveCategories();
+	}
+
+	public Category getActiveCategoryByName(String name) {
+		return categoryRepository.findActiveByName(name);
+	}
+
+	public Product getActiveProductBySku(String sku) {
+		return productRepository.findActiveBySku(sku);
+	}
+
+	public List<Product> getActiveProductsByCategory(Category category) {
+		return productRepository.findActiveByCategoryId(category.getId());
+	}
+
+	public List<Product> searchActiveProducts(String query) {
+		return productRepository.searchActive("%"+query+"%");
+	}
 }

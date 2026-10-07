@@ -15,6 +15,12 @@
         <div class="container">
             <div class="row">
                                 
+                <div class="alert alert-warning col-md-offset-2 col-md-8" th:if="${unavailableProducts != null}">
+						<p>Some products are no longer available and have been removed from your cart. Your order was not placed; please review it and place it again:</p>
+						<ul>
+							<li th:each="productName : ${unavailableProducts}" th:text="${productName}">Product Name</li>
+						</ul>
+				</div>
                 <div class="woocommerce-info col-md-offset-2 col-md-8" th:if="${#lists.isEmpty(cart.items)}">
 						<h2>Cart is Empty</h2>
 				</div>

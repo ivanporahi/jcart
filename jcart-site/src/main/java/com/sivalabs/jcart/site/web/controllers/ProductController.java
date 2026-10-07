@@ -41,7 +41,10 @@ public class ProductController extends JCartSiteBaseController
 	@RequestMapping("/products/{sku}")
 	public String product(@PathVariable String sku, Model model)
 	{
-		Product product = catalogService.getProductBySku(sku);
+		Product product = catalogService.getActiveProductBySku(sku);
+		if(product == null){
+			throw new NotFoundException("Product "+sku+" not found");
+		}
 		model.addAttribute("product", product);
 		return "product";
 	}
@@ -49,7 +52,7 @@ public class ProductController extends JCartSiteBaseController
 	@RequestMapping("/products")
 	public String searchProducts(@RequestParam(name="q", defaultValue="") String query, Model model)
 	{
-		List<Product> products = catalogService.searchProducts(query);
+		List<Product> products = catalogService.searchActiveProducts(query);
 		model.addAttribute("products", products);
 		return "products";
 	}

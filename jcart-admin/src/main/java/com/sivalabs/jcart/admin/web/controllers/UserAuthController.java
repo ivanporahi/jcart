@@ -5,9 +5,13 @@ package com.sivalabs.jcart.admin.web.controllers;
 
 import static com.sivalabs.jcart.admin.web.utils.MessageCodes.*;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,8 +22,8 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.sivalabs.jcart.JCartException;
-import com.sivalabs.jcart.admin.web.utils.WebUtils;
 import com.sivalabs.jcart.common.services.EmailService;
+import com.sivalabs.jcart.entities.User;
 import com.sivalabs.jcart.security.SecurityService;
 
 /**
@@ -35,6 +39,14 @@ public class UserAuthController extends JCartAdminBaseController
 	@Autowired protected EmailService emailService;
 	@Autowired protected PasswordEncoder passwordEncoder;
 	@Autowired protected TemplateEngine templateEngine;	
+	
+	private String baseUrl;
+	
+	@Value("${app.base-url:https://localhost:9443}")
+	public void setBaseUrl(String baseUrl)
+	{
+		this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+	}
 	
 	@Override
 	protected String getHeaderTitle()
@@ -54,10 +66,10 @@ public class UserAuthController extends JCartAdminBaseController
 		String email = request.getParameter("email");
 		try
 		{
-			String token = securityService.resetPassword(email);			
-			String resetPwdURL = WebUtils.getURLWithContextPath(request)+"/resetPwd?email="+email+"&token="+token;
-			logger.debug(resetPwdURL);
-			this.sendForgotPasswordEmail(email, resetPwdURL);
+			String token = securityService.resetPassword(email);
+			User user = securityService.findUserByEmail(email);
+			String resetPwdURL = buildResetPwdURL(user.getEmail(), token);
+			this.sendForgotPasswordEmail(user.getEmail(), resetPwdURL);
 			redirectAttributes.addFlashAttribute("msg", getMessage(INFO_PASSWORD_RESET_LINK_SENT));
 		} catch (JCartException e)
 		{
@@ -111,6 +123,16 @@ public class UserAuthController extends JCartAdminBaseController
 			redirectAttributes.addFlashAttribute("msg", getMessage(ERROR_INVALID_PASSWORD_RESET_REQUEST));
 		}
 		return "redirect:/login";
+	}
+
+	protected String buildResetPwdURL(String email, String token)
+	{
+		try {
+			return baseUrl + "/resetPwd?email=" + URLEncoder.encode(email, "UTF-8")
+					+ "&token=" + URLEncoder.encode(token, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new JCartException(e);
+		}
 	}
 
 	protected void sendForgotPasswordEmail(String email, String resetPwdURL)

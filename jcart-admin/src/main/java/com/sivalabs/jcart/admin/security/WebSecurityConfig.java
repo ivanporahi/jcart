@@ -37,7 +37,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
             .authorizeRequests()
             	.antMatchers("/resources/**", "/webjars/**","/assets/**").permitAll()
-                .antMatchers("/", "/forgotPwd","/resetPwd").permitAll()
+                .antMatchers("/", "/forgotPwd","/resetPwd", "/403").permitAll()
                 //.antMatchers(HttpMethod.POST,"/api","/api/**").hasRole("ROLE_ADMIN")
                 .anyRequest().authenticated()
                 .and()

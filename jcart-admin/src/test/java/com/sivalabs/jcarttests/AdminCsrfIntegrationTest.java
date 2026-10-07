@@ -22,6 +22,7 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StreamUtils;
@@ -48,6 +49,7 @@ public class AdminCsrfIntegrationTest {
     @Autowired private CatalogService catalogService;
     @Autowired private OrderService orderService;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private JdbcTemplate jdbcTemplate;
     private Client admin;
 
     @Configuration
@@ -108,7 +110,9 @@ public class AdminCsrfIntegrationTest {
         assertTrue(response.location.endsWith("/users"));
         User created = securityService.findUserByEmail(email);
         assertNotNull(created);
-        assertEquals("ROLE_SUPER_ADMIN", created.getRoles().get(0).getName());
+        assertEquals("ROLE_SUPER_ADMIN", jdbcTemplate.queryForObject(
+                "select r.name from roles r join user_role ur on r.id = ur.role_id where ur.user_id = ?",
+                String.class, created.getId()));
         assertTrue(passwordEncoder.matches(PASSWORD, created.getPassword()));
     }
 
@@ -141,7 +145,9 @@ public class AdminCsrfIntegrationTest {
             Response response = anonymous.get(path);
             assertEquals(200, response.status);
             assertNotNull(tokenFor(response.body, path));
-            assertEquals(403, anonymous.post(path, "email=" + EMAIL).status);
+            Response rejected = anonymous.post(path, "email=" + EMAIL);
+            assertEquals(403, rejected.status);
+            assertTrue(rejected.body.contains("You are not allowed to view this content."));
         }
         String resetToken = securityService.resetPassword(EMAIL);
         Response reset = anonymous.get("/resetPwd?email=" + EMAIL + "&token=" + resetToken);

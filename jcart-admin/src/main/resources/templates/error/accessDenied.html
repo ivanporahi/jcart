@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
 	  xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
-      layout:decorator="layout/mainLayout">
+      layout:decorator="layout/guestLayout">
       
       <head>
         <title>Access Denied</title>
     </head>
     <body>
-    	<div layout:fragment="pageHeader">
+	<div layout:fragment="content">
         <section class="content-header">
         	<h3><i class="fa fa-warning text-red"></i> You are not allowed to view this content.</h3>
         </section>
-        </div>
-    	<div layout:fragment="content">
 	        
 	        <div>
               

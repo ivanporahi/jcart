@@ -16,10 +16,17 @@
 ## Validación
 
 - Entorno: Java 8 y Maven disponibles. El snapshot incompleto informó un fallo de instalación de `python3-dev`, ajeno al build Java; no fue necesario instalar herramientas ni alterar el blueprint.
-- Pendiente de ejecutar tras abrir el PR: `JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn -B test` y `mvn -B -DskipTests package` con el mismo Java.
+- Tras abrir el PR se ejecutó `JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn -B test`: once pruebas contabilizadas, diez ejecutadas y aprobadas (siete nuevas de CSRF y tres existentes), cero fallos y cero errores. Una prueba ya marcada `@Ignore` en core permaneció omitida; no se modificó.
+- `JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn -B -DskipTests package` compiló y empaquetó correctamente los tres módulos.
 - No hay configuración de lint ni type-check independiente: la compilación Maven valida los tipos Java.
 - No se modifica el storefront ni se resuelven otros hallazgos del escaneo.
 
-## Después esperado
+### Primer pase: fallos y corrección
+
+- En el primer pase pasaron cinco escenarios de CSRF y el test de arranque del administrador; fallaron dos comprobaciones de la nueva suite.
+- Un POST anónimo sin token se rechazaba pero el forward a `/403`, al exigir autenticación, se convertía en redirect a login. Se permitió acceso a esa página de error, sin eximir ningún POST de CSRF. Un segundo pase mostró que su layout administrativo intentaba leer el nombre de un principal anónimo, causando HTTP 500; se utilizó el layout de invitados existente y se mantuvo el mensaje dentro del fragmento visible para preservar una página de HTTP 403 legible también en los formularios públicos.
+- La comprobación del rol del usuario creado intentaba leer una relación JPA lazy fuera de una sesión. Se verificó el rol persistido mediante una consulta SQL en la prueba, sin cambiar las entidades ni rebajar la comprobación.
+
+## Después
 
 Los POST administrativos sin el token de su propia sesión reciben HTTP 403. Los formularios legítimos incluyen el token automáticamente y logout solo termina la sesión mediante POST protegido. El hallazgo permanece abierto hasta que se fusione y verifique el PR.
